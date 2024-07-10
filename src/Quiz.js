@@ -108,7 +108,32 @@ function Quiz() {
   return (
     <div>
       <h1>Flag Quiz</h1>
-      <p>Time left: {Math.floor(timeLeft / 60)}:{timeLeft % 60 < 10 ? '0' : ''}{timeLeft % 60}</p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <div>
+          <p>Score: {score}/{flags.length}</p>
+          <p>Attempts: {attempts}</p>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <p style={{ fontSize: '2rem', color: 'green', margin: '0 10px' }}>
+            {Math.floor(timeLeft / 60)}:{timeLeft % 60 < 10 ? '0' : ''}{timeLeft % 60}
+          </p>
+          <button
+            type="button"
+            onClick={handleGiveUp}
+            disabled={isQuizOver}
+            style={{
+              backgroundColor: 'red',
+              color: 'white',
+              border: 'none',
+              padding: '5px 10px',
+              cursor: 'pointer',
+              fontSize: '1rem'
+            }}
+          >
+            Give Up
+          </button>
+        </div>
+      </div>
       <input
         type="text"
         value={currentAnswer}
@@ -123,16 +148,13 @@ function Quiz() {
             {renderTableRows()}
           </tbody>
         </table>
-        <button type="button" onClick={handleGiveUp} disabled={isQuizOver}>Give Up</button>
       </form>
-      <p>Score: {score}/{flags.length}</p>
       {isQuizOver && (
         <div>
           <button onClick={handleRetryAll}>Retry All</button>
           <button onClick={handleRetryIncorrect}>Retry Incorrect</button>
         </div>
       )}
-      <p>Attempts: {attempts}</p>
     </div>
   );
 }
