@@ -7,6 +7,7 @@ function Quiz() {
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
   const [isQuizOver, setIsQuizOver] = useState(false);
   const [attempts, setAttempts] = useState(0);
+  const [currentAnswer, setCurrentAnswer] = useState('');
 
   useEffect(() => {
     fetch('http://localhost:5000/flags')
@@ -35,17 +36,19 @@ function Quiz() {
     }
   }, [timeLeft, isQuizOver]);
 
-  const handleChange = (e, id) => {
+  const handleAnswerChange = (e) => {
     const { value } = e.target;
-    setAnswers(prevAnswers => ({
-      ...prevAnswers,
-      [id]: value
-    }));
+    setCurrentAnswer(value);
 
-    // Check if the answer is correct
-    const flag = flags.find(flag => flag.id === id);
-    if (flag && value.toLowerCase() === flag.name.toLowerCase()) {
+    // Check if the answer matches any flag
+    const flag = flags.find(flag => flag.name.toLowerCase() === value.toLowerCase());
+    if (flag) {
+      setAnswers(prevAnswers => ({
+        ...prevAnswers,
+        [flag.id]: flag.name
+      }));
       setScore(prevScore => prevScore + 1);
+      setCurrentAnswer('');
     }
   };
 
@@ -71,28 +74,58 @@ function Quiz() {
     setAttempts(prevAttempts => prevAttempts + 1);
   };
 
+  const renderTableRows = () => {
+    const rows = [];
+    for (let i = 0; i < flags.length; i += 5) {
+      const rowFlags = flags.slice(i, i + 5);
+      rows.push(
+        <tr key={i}>
+          {rowFlags.map(flag => (
+            <td key={flag.id} style={{ textAlign: 'center', padding: '10px' }}>
+              <img src={flag.image} alt={flag.name} style={{ width: '145px', height: '76px' }} />
+              <input
+                type="text"
+                value={answers[flag.id] || ''}
+                readOnly={!!answers[flag.id]}
+                style={{
+                  width: '140px',
+                  height: '35px',
+                  marginTop: '5px',
+                  color: answers[flag.id] ? 'green' : 'black'
+                }}
+              />
+              {isQuizOver && answers[flag.id] && answers[flag.id].toLowerCase() === flag.name.toLowerCase() && (
+                <p style={{ color: 'green' }}>{flag.name}</p>
+              )}
+              {isQuizOver && (!answers[flag.id] || answers[flag.id].toLowerCase() !== flag.name.toLowerCase()) && (
+                <p style={{ color: 'red' }}>{flag.name}</p>
+              )}
+            </td>
+          ))}
+        </tr>
+      );
+    }
+    return rows;
+  };
+
   return (
     <div>
       <h1>Flag Quiz</h1>
       <p>Time left: {Math.floor(timeLeft / 60)}:{timeLeft % 60 < 10 ? '0' : ''}{timeLeft % 60}</p>
+      <input
+        type="text"
+        value={currentAnswer}
+        onChange={handleAnswerChange}
+        placeholder="Type your answer here"
+        style={{ width: '300px', height: '35px', marginBottom: '20px' }}
+        disabled={isQuizOver}
+      />
       <form>
-        {flags.map(flag => (
-          <div key={flag.id}>
-            <img src={flag.image} alt={flag.name} />
-            <input
-              type="text"
-              value={answers[flag.id] || ''}
-              onChange={(e) => handleChange(e, flag.id)}
-              disabled={isQuizOver}
-            />
-            {isQuizOver && answers[flag.id] && answers[flag.id].toLowerCase() === flag.name.toLowerCase() && (
-              <p style={{ color: 'green' }}>{flag.name}</p>
-            )}
-            {isQuizOver && (!answers[flag.id] || answers[flag.id].toLowerCase() !== flag.name.toLowerCase()) && (
-              <p style={{ color: 'red' }}>{flag.name}</p>
-            )}
-          </div>
-        ))}
+        <table>
+          <tbody>
+            {renderTableRows()}
+          </tbody>
+        </table>
         <button type="button" onClick={handleGiveUp} disabled={isQuizOver}>Give Up</button>
       </form>
       <p>Score: {score}/{flags.length}</p>

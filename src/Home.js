@@ -3,8 +3,8 @@ import React from 'react';
 function Home() {
   return (
     <div>
-      <h1>Welcome to the Flag Quiz</h1>
-      <p>Test your knowledge of world flags!</p>
+      <h1>Choose your Quiz!</h1>
+      <p>choose one of the quizzes below!</p>
     </div>
   );
 }
