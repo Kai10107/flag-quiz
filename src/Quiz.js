@@ -6,6 +6,7 @@ function Quiz() {
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
   const [isQuizOver, setIsQuizOver] = useState(false);
+  const [attempts, setAttempts] = useState(0);
 
   useEffect(() => {
     fetch('http://localhost:5000/flags')
@@ -42,10 +43,27 @@ function Quiz() {
     });
     setScore(newScore);
     setIsQuizOver(true);
+    setAttempts(attempts + 1);
   };
 
   const handleGiveUp = () => {
     setIsQuizOver(true);
+  };
+
+  const handleRetryAll = () => {
+    setAnswers({});
+    setScore(0);
+    setTimeLeft(300);
+    setIsQuizOver(false);
+  };
+
+  const handleRetryIncorrect = () => {
+    const incorrectFlags = flags.filter(flag => !answers[flag.id] || answers[flag.id].toLowerCase() !== flag.name.toLowerCase());
+    setFlags(incorrectFlags);
+    setAnswers({});
+    setScore(0);
+    setTimeLeft(300);
+    setIsQuizOver(false);
   };
 
   return (
@@ -74,6 +92,13 @@ function Quiz() {
         <button type="button" onClick={handleGiveUp} disabled={isQuizOver}>Give Up</button>
       </form>
       <p>Score: {score}/{flags.length}</p>
+      {isQuizOver && (
+        <div>
+          <button onClick={handleRetryAll}>Retry All</button>
+          <button onClick={handleRetryIncorrect}>Retry Incorrect</button>
+        </div>
+      )}
+      <p>Attempts: {attempts}</p>
     </div>
   );
 }
