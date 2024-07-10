@@ -4,12 +4,25 @@ function Quiz() {
   const [flags, setFlags] = useState([]);
   const [answers, setAnswers] = useState({});
   const [score, setScore] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
+  const [isQuizOver, setIsQuizOver] = useState(false);
 
   useEffect(() => {
     fetch('http://localhost:5000/flags')
       .then(response => response.json())
       .then(data => setFlags(data));
   }, []);
+
+  useEffect(() => {
+    if (timeLeft > 0 && !isQuizOver) {
+      const timer = setInterval(() => {
+        setTimeLeft(timeLeft - 1);
+      }, 1000);
+      return () => clearInterval(timer);
+    } else if (timeLeft === 0) {
+      setIsQuizOver(true);
+    }
+  }, [timeLeft, isQuizOver]);
 
   const handleChange = (e, id) => {
     const { value } = e.target;
@@ -28,11 +41,17 @@ function Quiz() {
       }
     });
     setScore(newScore);
+    setIsQuizOver(true);
+  };
+
+  const handleGiveUp = () => {
+    setIsQuizOver(true);
   };
 
   return (
     <div>
       <h1>Flag Quiz</h1>
+      <p>Time left: {Math.floor(timeLeft / 60)}:{timeLeft % 60 < 10 ? '0' : ''}{timeLeft % 60}</p>
       <form onSubmit={handleSubmit}>
         {flags.map(flag => (
           <div key={flag.id}>
@@ -41,10 +60,18 @@ function Quiz() {
               type="text"
               value={answers[flag.id] || ''}
               onChange={(e) => handleChange(e, flag.id)}
+              disabled={isQuizOver}
             />
+            {isQuizOver && answers[flag.id] && answers[flag.id].toLowerCase() === flag.name.toLowerCase() && (
+              <p style={{ color: 'green' }}>{flag.name}</p>
+            )}
+            {isQuizOver && (!answers[flag.id] || answers[flag.id].toLowerCase() !== flag.name.toLowerCase()) && (
+              <p style={{ color: 'red' }}>{flag.name}</p>
+            )}
           </div>
         ))}
-        <button type="submit">Submit</button>
+        <button type="submit" disabled={isQuizOver}>Submit</button>
+        <button type="button" onClick={handleGiveUp} disabled={isQuizOver}>Give Up</button>
       </form>
       <p>Score: {score}/{flags.length}</p>
     </div>
