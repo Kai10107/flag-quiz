@@ -76,8 +76,8 @@ function Quiz() {
 
   const renderTableRows = () => {
     const rows = [];
-    for (let i = 0; i < flags.length; i += 5) {
-      const rowFlags = flags.slice(i, i + 5);
+    for (let i = 0; i < flags.length; i += 10) { // Change to 10 flags per row
+      const rowFlags = flags.slice(i, i + 10);
       rows.push(
         <tr key={i}>
           {rowFlags.map(flag => (
