@@ -82,24 +82,21 @@ function Quiz() {
         <tr key={i}>
           {rowFlags.map(flag => (
             <td key={flag.id} style={{ textAlign: 'center', padding: '10px' }}>
-              <img src={flag.image} alt={flag.name} style={{ width: '145px', height: '76px' }} />
-              <input
-                type="text"
-                value={answers[flag.id] || ''}
-                readOnly={!!answers[flag.id]}
-                style={{
-                  width: '140px',
-                  height: '35px',
-                  marginTop: '5px',
-                  color: answers[flag.id] ? 'green' : 'black'
-                }}
-              />
-              {isQuizOver && answers[flag.id] && answers[flag.id].toLowerCase() === flag.name.toLowerCase() && (
-                <p style={{ color: 'green' }}>{flag.name}</p>
-              )}
-              {isQuizOver && (!answers[flag.id] || answers[flag.id].toLowerCase() !== flag.name.toLowerCase()) && (
-                <p style={{ color: 'red' }}>{flag.name}</p>
-              )}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <img src={flag.image} alt={flag.name} style={{ maxWidth: '145px', maxHeight: '76px', border: '1px solid black' }} />
+                <input
+                  type="text"
+                  value={isQuizOver && (!answers[flag.id] || answers[flag.id].toLowerCase() !== flag.name.toLowerCase()) ? flag.name : (answers[flag.id] || '')}
+                  readOnly={!!answers[flag.id] || isQuizOver}
+                  style={{
+                    width: '140px',
+                    height: '35px',
+                    marginTop: '5px',
+                    color: isQuizOver && (!answers[flag.id] || answers[flag.id].toLowerCase() !== flag.name.toLowerCase()) ? 'red' : (answers[flag.id] ? 'green' : 'black'),
+                    textAlign: 'center'
+                  }}
+                />
+              </div>
             </td>
           ))}
         </tr>
