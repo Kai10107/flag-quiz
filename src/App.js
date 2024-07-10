@@ -4,7 +4,7 @@ import Navbar from './Navbar';
 import Home from './Home';
 import Quiz from './Quiz';
 import Results from './Results';
-
+import './App.css';
 function App() {
   return (
     <Router>
