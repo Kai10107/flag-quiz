@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import './App.css'; // Assuming you have a CSS file for additional styles
 
 function Quiz() {
   const [flags, setFlags] = useState([]);
@@ -72,8 +71,7 @@ function Quiz() {
               type="text"
               value={answers[flag.id] || ''}
               onChange={(e) => handleChange(e, flag.id)}
-              disabled={isQuizOver || (answers[flag.id] && answers[flag.id].toLowerCase() === flag.name.toLowerCase())}
-              className={answers[flag.id] && answers[flag.id].toLowerCase() === flag.name.toLowerCase() ? 'correct' : ''}
+              disabled={isQuizOver}
             />
             {isQuizOver && answers[flag.id] && answers[flag.id].toLowerCase() === flag.name.toLowerCase() && (
               <p style={{ color: 'green' }}>{flag.name}</p>

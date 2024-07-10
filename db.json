@@ -1,7 +1,15 @@
 {
   "flags": [
     { "id": 1, "name": "United States", "image": "https://jetpunk.b-cdn.net/img/user-photo-library/89/892037c361-450.png" },
-    { "id": 2, "name": "Canada", "image": "https://jetpunk.b-cdn.net/img/user-photo-library/fe/fe8b3799ab-450.png" }
+    { "id": 2, "name": "Canada", "image": "https://jetpunk.b-cdn.net/img/user-photo-library/fe/fe8b3799ab-450.png" },
+    { "id": 3, "name": "Australia", "image": "https://jetpunk.b-cdn.net/img/user-photo-library/29/2977b584c7-450.png" },
+    { "id": 4, "name": "New Zealand", "image": "https://jetpunk.b-cdn.net/img/user-photo-library/1a/1ae8ea63cb-450.png" },
+    { "id": 5, "name": "United Kingdom", "image": "https://jetpunk.b-cdn.net/img/user-photo-library/c4/c4dc03b064-450.png" },
+    { "id": 6, "name": "Russia", "image": "https://jetpunk.b-cdn.net/img/user-photo-library/9e/9e5b4f0ded-450.png" },
+    { "id": 7, "name": "France", "image": "https://jetpunk.b-cdn.net/img/user-photo-library/56/566ccde181-450.png" },
+    { "id": 8, "name": "Japan", "image": "https://jetpunk.b-cdn.net/img/user-photo-library/29/29f3fa68f5-450.png" },
+    { "id": 9, "name": "Italy", "image": "https://jetpunk.b-cdn.net/img/user-photo-library/ad/ad99d315b8-450.png" },
+    { "id": 10, "name": "Brazil", "image": "https://jetpunk.b-cdn.net/img/user-photo-library/81/812460c5a0-450.png" }
    
   ]
 }
