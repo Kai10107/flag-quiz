@@ -10,14 +10,24 @@ function Quiz() {
 
   useEffect(() => {
     fetch('http://localhost:5000/flags')
-      .then(response => response.json())
-      .then(data => setFlags(data));
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        setFlags(data);
+      })
+      .catch(error => {
+        console.error('Failed to fetch flags:', error);
+      });
   }, []);
 
   useEffect(() => {
     if (timeLeft > 0 && !isQuizOver) {
       const timer = setInterval(() => {
-        setTimeLeft(timeLeft - 1);
+        setTimeLeft(prevTime => prevTime - 1);
       }, 1000);
       return () => clearInterval(timer);
     } else if (timeLeft === 0) {
@@ -27,15 +37,15 @@ function Quiz() {
 
   const handleChange = (e, id) => {
     const { value } = e.target;
-    setAnswers({
-      ...answers,
+    setAnswers(prevAnswers => ({
+      ...prevAnswers,
       [id]: value
-    });
+    }));
 
     // Check if the answer is correct
     const flag = flags.find(flag => flag.id === id);
     if (flag && value.toLowerCase() === flag.name.toLowerCase()) {
-      setScore(score + 1);
+      setScore(prevScore => prevScore + 1);
     }
   };
 
@@ -48,6 +58,7 @@ function Quiz() {
     setScore(0);
     setTimeLeft(300);
     setIsQuizOver(false);
+    setAttempts(prevAttempts => prevAttempts + 1);
   };
 
   const handleRetryIncorrect = () => {
@@ -57,6 +68,7 @@ function Quiz() {
     setScore(0);
     setTimeLeft(300);
     setIsQuizOver(false);
+    setAttempts(prevAttempts => prevAttempts + 1);
   };
 
   return (
