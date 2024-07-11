@@ -4,7 +4,7 @@ function Quiz() {
   const [flags, setFlags] = useState([]);
   const [answers, setAnswers] = useState({});
   const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(900); // 15 minutes
+  const [timeLeft, setTimeLeft] = useState(900);
   const [isQuizOver, setIsQuizOver] = useState(false);
   const [attempts, setAttempts] = useState(0);
   const [currentAnswer, setCurrentAnswer] = useState('');
@@ -12,25 +12,13 @@ function Quiz() {
 
   useEffect(() => {
     fetch('http://localhost:5000/flags')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then(data => {
-        setFlags(data);
-      })
-      .catch(error => {
-        console.error('Failed to fetch flags:', error);
-      });
+      .then(response => response.json())
+      .then(data => setFlags(data));
   }, []);
 
   useEffect(() => {
     if (isQuizStarted && timeLeft > 0 && !isQuizOver) {
-      const timer = setInterval(() => {
-        setTimeLeft(prevTime => prevTime - 1);
-      }, 1000);
+      const timer = setInterval(() => setTimeLeft(prevTime => prevTime - 1), 1000);
       return () => clearInterval(timer);
     } else if (timeLeft === 0) {
       setIsQuizOver(true);
@@ -41,21 +29,15 @@ function Quiz() {
     const { value } = e.target;
     setCurrentAnswer(value);
 
-    // Check if the answer matches any flag
     const flag = flags.find(flag => flag.name.toLowerCase() === value.toLowerCase());
     if (flag) {
-      setAnswers(prevAnswers => ({
-        ...prevAnswers,
-        [flag.id]: flag.name
-      }));
+      setAnswers(prevAnswers => ({ ...prevAnswers, [flag.id]: flag.name }));
       setScore(prevScore => prevScore + 1);
       setCurrentAnswer('');
     }
   };
 
-  const handleGiveUp = () => {
-    setIsQuizOver(true);
-  };
+  const handleGiveUp = () => setIsQuizOver(true);
 
   const handleRetryAll = () => {
     setAnswers({});
@@ -77,13 +59,11 @@ function Quiz() {
     setIsQuizStarted(false);
   };
 
-  const handleStartQuiz = () => {
-    setIsQuizStarted(true);
-  };
+  const handleStartQuiz = () => setIsQuizStarted(true);
 
   const renderTableRows = () => {
     const rows = [];
-    for (let i = 0; i < flags.length; i += 10) { // Change to 10 flags per row
+    for (let i = 0; i < flags.length; i += 10) {
       const rowFlags = flags.slice(i, i + 10);
       rows.push(
         <tr key={i}>
@@ -95,13 +75,7 @@ function Quiz() {
                   type="text"
                   value={isQuizOver && (!answers[flag.id] || answers[flag.id].toLowerCase() !== flag.name.toLowerCase()) ? flag.name : (answers[flag.id] || '')}
                   readOnly={!!answers[flag.id] || isQuizOver || !isQuizStarted}
-                  style={{
-                    width: '140px',
-                    height: '35px',
-                    marginTop: '5px',
-                    color: isQuizOver && (!answers[flag.id] || answers[flag.id].toLowerCase() !== flag.name.toLowerCase()) ? 'red' : (answers[flag.id] ? 'green' : 'black'),
-                    textAlign: 'center'
-                  }}
+                  style={{ width: '140px', height: '35px', marginTop: '5px', textAlign: 'center' }}
                 />
               </div>
             </td>
