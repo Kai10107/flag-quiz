@@ -63,8 +63,8 @@ function Quiz() {
 
   const renderTableRows = () => {
     const rows = [];
-    for (let i = 0; i < flags.length; i += 10) {
-      const rowFlags = flags.slice(i, i + 10);
+    for (let i = 0; i < flags.length; i += 8) {
+      const rowFlags = flags.slice(i, i + 8);
       rows.push(
         <tr key={i}>
           {rowFlags.map(flag => (
@@ -75,7 +75,7 @@ function Quiz() {
                   type="text"
                   value={isQuizOver && (!answers[flag.id] || answers[flag.id].toLowerCase() !== flag.name.toLowerCase()) ? flag.name : (answers[flag.id] || '')}
                   readOnly={!!answers[flag.id] || isQuizOver || !isQuizStarted}
-                  style={{ width: '140px', height: '35px', marginTop: '5px', textAlign: 'center' }}
+                  style={{ width: '130px', height: '10px', marginTop: '5px', textAlign: 'center' }}
                 />
               </div>
             </td>
@@ -88,8 +88,9 @@ function Quiz() {
 
   return (
     <div>
-      <h1>Flag Quiz</h1>
-      {!isQuizStarted ? (
+      <h1>All Country Flags of the World</h1>
+      <p>Can you name all the flags? You can keep retrying until you name them all!</p>
+      {!isQuizStarted && (
         <button
           onClick={handleStartQuiz}
           style={{
@@ -104,8 +105,9 @@ function Quiz() {
         >
           Start Quiz
         </button>
-      ) : (
-        <>
+      )}
+      {isQuizStarted && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, backgroundColor: 'white', padding: '10px', zIndex: 1000 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <div>
               <p>Score: {score}/{flags.length}</p>
@@ -140,7 +142,7 @@ function Quiz() {
             style={{ width: '300px', height: '35px', marginBottom: '20px' }}
             disabled={isQuizOver}
           />
-        </>
+        </div>
       )}
       <form>
         <table>
