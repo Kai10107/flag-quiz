@@ -9,6 +9,7 @@ function Quiz() {
   const [attempts, setAttempts] = useState(0);
   const [currentAnswer, setCurrentAnswer] = useState('');
   const [isQuizStarted, setIsQuizStarted] = useState(false);
+  const [currentFlagId, setCurrentFlagId] = useState(null);
 
   useEffect(() => {
     fetch('http://localhost:5000/flags')
@@ -28,12 +29,15 @@ function Quiz() {
   const handleAnswerChange = (e) => {
     const { value } = e.target;
     setCurrentAnswer(value);
-
-    const flag = flags.find(flag => flag.name.toLowerCase() === value.toLowerCase());
-    if (flag) {
-      setAnswers(prevAnswers => ({ ...prevAnswers, [flag.id]: flag.name }));
-      setScore(prevScore => prevScore + 1);
-      setCurrentAnswer('');
+  
+    if (currentFlagId !== null) {
+      const flag = flags.find(flag => flag.id === currentFlagId && flag.name.toLowerCase() === value.toLowerCase());
+      if (flag) {
+        setAnswers(prevAnswers => ({ ...prevAnswers, [flag.id]: flag.name }));
+        setScore(prevScore => prevScore + 1);
+        setCurrentAnswer('');
+        setCurrentFlagId(null);
+      }
     }
   };
 
@@ -74,8 +78,15 @@ function Quiz() {
                 <input
                   type="text"
                   value={isQuizOver && (!answers[flag.id] || answers[flag.id].toLowerCase() !== flag.name.toLowerCase()) ? flag.name : (answers[flag.id] || '')}
-                  readOnly={!!answers[flag.id] || isQuizOver || !isQuizStarted}
-                  style={{ width: '130px', height: '10px', marginTop: '5px', textAlign: 'center' }}
+                  readOnly={!!answers[flag.id] || isQuizOver || !isQuizStarted || currentFlagId !== flag.id}
+                  style={{
+                    width: '130px',
+                    height: '10px',
+                    marginTop: '5px',
+                    textAlign: 'center',
+                    backgroundColor: currentFlagId === flag.id ? 'yellow' : 'white'
+                  }}
+                  onClick={() => setCurrentFlagId(flag.id)}
                 />
               </div>
             </td>
@@ -85,6 +96,7 @@ function Quiz() {
     }
     return rows;
   };
+  
 
   return (
     <div>
