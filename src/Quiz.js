@@ -14,7 +14,12 @@ function Quiz() {
   useEffect(() => {
     fetch('http://localhost:5000/flags')
       .then(response => response.json())
-      .then(data => setFlags(data));
+      .then(data => {
+        setFlags(data);
+        if (data.length > 0) {
+          setCurrentFlagId(data[0].id);
+        }
+      });
   }, []);
 
   useEffect(() => {
@@ -29,14 +34,20 @@ function Quiz() {
   const handleAnswerChange = (e) => {
     const { value } = e.target;
     setCurrentAnswer(value);
-  
+
     if (currentFlagId !== null) {
       const flag = flags.find(flag => flag.id === currentFlagId && flag.name.toLowerCase() === value.toLowerCase());
       if (flag) {
         setAnswers(prevAnswers => ({ ...prevAnswers, [flag.id]: flag.name }));
         setScore(prevScore => prevScore + 1);
         setCurrentAnswer('');
-        setCurrentFlagId(null);
+
+        const currentFlagIndex = flags.findIndex(flag => flag.id === currentFlagId);
+        if (currentFlagIndex < flags.length - 1) {
+          setCurrentFlagId(flags[currentFlagIndex + 1].id);
+        } else {
+          setCurrentFlagId(null);
+        }
       }
     }
   };
@@ -87,6 +98,17 @@ function Quiz() {
                     backgroundColor: currentFlagId === flag.id ? 'yellow' : 'white'
                   }}
                   onClick={() => setCurrentFlagId(flag.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Tab') {
+                      e.preventDefault();
+                      const currentFlagIndex = flags.findIndex(flag => flag.id === currentFlagId);
+                      if (currentFlagIndex < flags.length - 1) {
+                        setCurrentFlagId(flags[currentFlagIndex + 1].id);
+                      } else {
+                        setCurrentFlagId(flags[0].id);
+                      }
+                    }
+                  }}
                 />
               </div>
             </td>
@@ -96,7 +118,6 @@ function Quiz() {
     }
     return rows;
   };
-  
 
   return (
     <div>
