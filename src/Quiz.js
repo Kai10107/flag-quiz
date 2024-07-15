@@ -6,13 +6,12 @@ function Quiz() {
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(900);
   const [isQuizOver, setIsQuizOver] = useState(false);
-  const [attempts, setAttempts] = useState(0);
   const [currentAnswer, setCurrentAnswer] = useState('');
   const [isQuizStarted, setIsQuizStarted] = useState(false);
   const [currentFlagId, setCurrentFlagId] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:5000/flags')
+    fetch('http://localhost:3001/flags')
       .then(response => response.json())
       .then(data => {
         setFlags(data);
@@ -31,22 +30,29 @@ function Quiz() {
     }
   }, [timeLeft, isQuizOver, isQuizStarted]);
 
+  const isAnswerCorrect = (userAnswer, correctAnswers) => {
+    return correctAnswers.some(answer => userAnswer.toLowerCase() === answer.toLowerCase());
+  };
+
   const handleAnswerChange = (e) => {
     const { value } = e.target;
     setCurrentAnswer(value);
 
     if (currentFlagId !== null) {
-      const flag = flags.find(flag => flag.id === currentFlagId && flag.name.toLowerCase() === value.toLowerCase());
+      const flag = flags.find(flag => flag.id === currentFlagId);
       if (flag) {
-        setAnswers(prevAnswers => ({ ...prevAnswers, [flag.id]: flag.name }));
-        setScore(prevScore => prevScore + 1);
-        setCurrentAnswer('');
+        const correctAnswers = [flag.name, ...(flag.alternativeAnswers || [])];
+        if (isAnswerCorrect(value, correctAnswers)) {
+          setAnswers(prevAnswers => ({ ...prevAnswers, [flag.id]: flag.name }));
+          setScore(prevScore => prevScore + 1);
+          setCurrentAnswer('');
 
-        const currentFlagIndex = flags.findIndex(flag => flag.id === currentFlagId);
-        if (currentFlagIndex < flags.length - 1) {
-          setCurrentFlagId(flags[currentFlagIndex + 1].id);
-        } else {
-          setCurrentFlagId(null);
+          const currentFlagIndex = flags.findIndex(flag => flag.id === currentFlagId);
+          if (currentFlagIndex < flags.length - 1) {
+            setCurrentFlagId(flags[currentFlagIndex + 1].id);
+          } else {
+            setCurrentFlagId(null);
+          }
         }
       }
     }
@@ -59,64 +65,55 @@ function Quiz() {
     setScore(0);
     setTimeLeft(900);
     setIsQuizOver(false);
-    setAttempts(prevAttempts => prevAttempts + 1);
     setIsQuizStarted(false);
   };
 
   const handleRetryIncorrect = () => {
-    const incorrectFlags = flags.filter(flag => !answers[flag.id] || answers[flag.id].toLowerCase() !== flag.name.toLowerCase());
+    const incorrectFlags = flags.filter(flag => !answers[flag.id] || !isAnswerCorrect(answers[flag.id], [flag.name, ...(flag.alternativeAnswers || [])]));
     setFlags(incorrectFlags);
     setAnswers({});
     setScore(0);
     setTimeLeft(900);
     setIsQuizOver(false);
-    setAttempts(prevAttempts => prevAttempts + 1);
     setIsQuizStarted(false);
   };
 
   const handleStartQuiz = () => setIsQuizStarted(true);
 
   const renderTableRows = () => {
-    const rows = [];
-    for (let i = 0; i < flags.length; i += 8) {
-      const rowFlags = flags.slice(i, i + 8);
-      rows.push(
-        <tr key={i}>
-          {rowFlags.map(flag => (
-            <td key={flag.id} style={{ textAlign: 'center', padding: '10px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <img src={flag.image} alt={flag.name} style={{ maxWidth: '145px', maxHeight: '76px', border: '1px solid black' }} />
-                <input
-                  type="text"
-                  value={isQuizOver && (!answers[flag.id] || answers[flag.id].toLowerCase() !== flag.name.toLowerCase()) ? flag.name : (answers[flag.id] || '')}
-                  readOnly={!!answers[flag.id] || isQuizOver || !isQuizStarted || currentFlagId !== flag.id}
-                  style={{
-                    width: '130px',
-                    height: '10px',
-                    marginTop: '5px',
-                    textAlign: 'center',
-                    backgroundColor: currentFlagId === flag.id ? 'yellow' : 'white'
-                  }}
-                  onClick={() => setCurrentFlagId(flag.id)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Tab') {
-                      e.preventDefault();
-                      const currentFlagIndex = flags.findIndex(flag => flag.id === currentFlagId);
-                      if (currentFlagIndex < flags.length - 1) {
-                        setCurrentFlagId(flags[currentFlagIndex + 1].id);
-                      } else {
-                        setCurrentFlagId(flags[0].id);
-                      }
-                    }
-                  }}
-                />
-              </div>
-            </td>
-          ))}
-        </tr>
-      );
-    }
-    return rows;
+    return flags.map((flag, index) => (
+      <tr key={index}>
+        <td style={{ textAlign: 'center', padding: '10px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <img src={flag.image} alt={flag.name} style={{ maxWidth: '145px', maxHeight: '76px', border: '1px solid black' }} />
+            <input
+              type="text"
+              value={isQuizOver && (!answers[flag.id] || !isAnswerCorrect(answers[flag.id], [flag.name, ...(flag.alternativeAnswers || [])])) ? flag.name : (answers[flag.id] || '')}
+              readOnly={!!answers[flag.id] || isQuizOver || !isQuizStarted || currentFlagId !== flag.id}
+              style={{
+                width: '130px',
+                height: '10px',
+                marginTop: '5px',
+                textAlign: 'center',
+                backgroundColor: currentFlagId === flag.id ? 'yellow' : 'white'
+              }}
+              onClick={() => setCurrentFlagId(flag.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Tab') {
+                  e.preventDefault();
+                  const currentFlagIndex = flags.findIndex(flag => flag.id === currentFlagId);
+                  if (currentFlagIndex < flags.length - 1) {
+                    setCurrentFlagId(flags[currentFlagIndex + 1].id);
+                  } else {
+                    setCurrentFlagId(flags[0].id);
+                  }
+                }
+              }}
+            />
+          </div>
+        </td>
+      </tr>
+    ));
   };
 
   return (
@@ -144,7 +141,6 @@ function Quiz() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <div>
               <p>Score: {score}/{flags.length}</p>
-              <p>Attempts: {attempts}</p>
             </div>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <p style={{ fontSize: '2rem', color: 'green', margin: '0 10px' }}>
