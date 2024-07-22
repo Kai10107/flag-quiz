@@ -1,22 +1,23 @@
 import React, { useState, useEffect } from 'react';
 
-function Quiz() {
-  const [flags, setFlags] = useState([]);
+function PokemonQuiz() {
+  const [pokemon, setPokemon] = useState([]);
   const [answers, setAnswers] = useState({});
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(900);
   const [isQuizOver, setIsQuizOver] = useState(false);
+  const [attempts, setAttempts] = useState(0);
   const [currentAnswer, setCurrentAnswer] = useState('');
   const [isQuizStarted, setIsQuizStarted] = useState(false);
-  const [currentFlagId, setCurrentFlagId] = useState(null);
+  const [currentPokemonId, setCurrentPokemonId] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:3001/flags')
+    fetch('http://localhost:5000/pokemon')
       .then(response => response.json())
       .then(data => {
-        setFlags(data);
+        setPokemon(data);
         if (data.length > 0) {
-          setCurrentFlagId(data[0].id);
+          setCurrentPokemonId(data[0].id);
         }
       });
   }, []);
@@ -30,29 +31,23 @@ function Quiz() {
     }
   }, [timeLeft, isQuizOver, isQuizStarted]);
 
-  const isAnswerCorrect = (userAnswer, correctAnswers) => {
-    return correctAnswers.some(answer => userAnswer.toLowerCase() === answer.toLowerCase());
-  };
-
   const handleAnswerChange = (e) => {
     const { value } = e.target;
     setCurrentAnswer(value);
 
-    if (currentFlagId !== null) {
-      const flag = flags.find(flag => flag.id === currentFlagId);
-      if (flag) {
-        const correctAnswers = [flag.name, ...(flag.alternativeAnswers || [])];
-        if (isAnswerCorrect(value, correctAnswers)) {
-          setAnswers(prevAnswers => ({ ...prevAnswers, [flag.id]: flag.name }));
-          setScore(prevScore => prevScore + 1);
-          setCurrentAnswer('');
+    if (currentPokemonId !== null) {
+      const poke = pokemon.find(p => p.id === currentPokemonId && p.name.toLowerCase() === value.toLowerCase());
+      if (poke) {
+        setAnswers(prevAnswers => ({ ...prevAnswers, [poke.id]: poke.name }));
+        setScore(prevScore => prevScore + 1);
+        setCurrentAnswer('');
+        setCurrentPokemonId(null);
 
-          const currentFlagIndex = flags.findIndex(flag => flag.id === currentFlagId);
-          if (currentFlagIndex < flags.length - 1) {
-            setCurrentFlagId(flags[currentFlagIndex + 1].id);
-          } else {
-            setCurrentFlagId(null);
-          }
+        const currentPokemonIndex = pokemon.findIndex(p => p.id === currentPokemonId);
+        if (currentPokemonIndex < pokemon.length - 1) {
+          setCurrentPokemonId(pokemon[currentPokemonIndex + 1].id);
+        } else {
+          setCurrentPokemonId(null);
         }
       }
     }
@@ -65,61 +60,70 @@ function Quiz() {
     setScore(0);
     setTimeLeft(900);
     setIsQuizOver(false);
+    setAttempts(prevAttempts => prevAttempts + 1);
     setIsQuizStarted(false);
   };
 
   const handleRetryIncorrect = () => {
-    const incorrectFlags = flags.filter(flag => !answers[flag.id] || !isAnswerCorrect(answers[flag.id], [flag.name, ...(flag.alternativeAnswers || [])]));
-    setFlags(incorrectFlags);
+    const incorrectPokemon = pokemon.filter(p => !answers[p.id] || answers[p.id].toLowerCase() !== p.name.toLowerCase());
+    setPokemon(incorrectPokemon);
     setAnswers({});
     setScore(0);
     setTimeLeft(900);
     setIsQuizOver(false);
+    setAttempts(prevAttempts => prevAttempts + 1);
     setIsQuizStarted(false);
   };
 
   const handleStartQuiz = () => setIsQuizStarted(true);
 
   const renderTableRows = () => {
-    return flags.map((flag, index) => (
-      <tr key={index}>
-        <td style={{ textAlign: 'center', padding: '10px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <img src={flag.image} alt={flag.name} style={{ maxWidth: '145px', maxHeight: '76px', border: '1px solid black' }} />
-            <input
-              type="text"
-              value={isQuizOver && (!answers[flag.id] || !isAnswerCorrect(answers[flag.id], [flag.name, ...(flag.alternativeAnswers || [])])) ? flag.name : (answers[flag.id] || '')}
-              readOnly={!!answers[flag.id] || isQuizOver || !isQuizStarted || currentFlagId !== flag.id}
-              style={{
-                width: '130px',
-                height: '10px',
-                marginTop: '5px',
-                textAlign: 'center',
-                backgroundColor: currentFlagId === flag.id ? 'yellow' : 'white'
-              }}
-              onClick={() => setCurrentFlagId(flag.id)}
-              onKeyDown={(e) => {
-                if (e.key === 'Tab') {
-                  e.preventDefault();
-                  const currentFlagIndex = flags.findIndex(flag => flag.id === currentFlagId);
-                  if (currentFlagIndex < flags.length - 1) {
-                    setCurrentFlagId(flags[currentFlagIndex + 1].id);
-                  } else {
-                    setCurrentFlagId(flags[0].id);
-                  }
-                }
-              }}
-            />
-          </div>
-        </td>
-      </tr>
-    ));
+    const rows = [];
+    for (let i = 0; i < pokemon.length; i += 8) {
+      const rowPokemon = pokemon.slice(i, i + 8);
+      rows.push(
+        <tr key={i}>
+          {rowPokemon.map(p => (
+            <td key={p.id} style={{ textAlign: 'center', padding: '10px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <img src={p.image} alt={p.name} style={{ maxWidth: '145px', maxHeight: '76px', border: '1px solid black' }} />
+                <input
+                  type="text"
+                  value={isQuizOver && (!answers[p.id] || answers[p.id].toLowerCase() !== p.name.toLowerCase()) ? p.name : (answers[p.id] || '')}
+                  readOnly={!!answers[p.id] || isQuizOver || !isQuizStarted || currentPokemonId !== p.id}
+                  style={{
+                    width: '130px',
+                    height: '10px',
+                    marginTop: '5px',
+                    textAlign: 'center',
+                    backgroundColor: currentPokemonId === p.id ? 'yellow' : 'white'
+                  }}
+                  onClick={() => setCurrentPokemonId(p.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Tab') {
+                      e.preventDefault();
+                      const currentPokemonIndex = pokemon.findIndex(p => p.id === currentPokemonId);
+                      if (currentPokemonIndex < pokemon.length - 1) {
+                        setCurrentPokemonId(pokemon[currentPokemonIndex + 1].id);
+                      } else {
+                        setCurrentPokemonId(pokemon[0].id);
+                      }
+                    }
+                  }}
+                />
+              </div>
+            </td>
+          ))}
+        </tr>
+      );
+    }
+    return rows;
   };
 
   return (
     <div>
-      <h1>All Country Flags of the World</h1>
-      <p>Can you name all the flags? You can keep retrying until you name them all!</p>
+      <h1>Gen 1 Pokémon Quiz</h1>
+      <p>Can you name all the Gen 1 Pokémon? You can keep retrying until you name them all!</p>
       {!isQuizStarted && (
         <button
           onClick={handleStartQuiz}
@@ -140,7 +144,8 @@ function Quiz() {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, backgroundColor: 'white', padding: '10px', zIndex: 1000 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <div>
-              <p>Score: {score}/{flags.length}</p>
+              <p>Score: {score}/{pokemon.length}</p>
+              <p>Attempts: {attempts}</p>
             </div>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <p style={{ fontSize: '2rem', color: 'green', margin: '0 10px' }}>
@@ -190,4 +195,4 @@ function Quiz() {
   );
 }
 
-export default Quiz;
+export default PokemonQuiz;
